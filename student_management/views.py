@@ -60,16 +60,24 @@ def update_student(request):
         name = request.POST['name'].capitalize()
         field = request.POST['field']
         value = request.POST['value']
-        s = Student.objects.filter(name=name)[0]
-        
-        if s:
-            setattr(s,'age', 100)
-            s.save()
-            return redirect(reverse('index'))
-        else:
+        try:
+            s = Student.objects.get(name=name)
+        except:
             return render(request,'student_management/update_student.html',{ 'message' :"No record to update"})
 
- 
+        if field == 'supervisior':
+            return render(request,'student_management/update_student.html',{ 'message' :"cannot update supervisior field"})
+        elif field =='faculty':
+            return render(request,'student_management/update_student.html',{ 'message' :"cannot update supervisior field"})
+
+        else:
+            value = int(value)
+            
+        if s:
+            setattr(s,field, value)
+            s.save()
+            return redirect(reverse('index'))
+        
     else:
 
         return render (request,'student_management/update_student.html')
@@ -77,12 +85,13 @@ def update_student(request):
 def delete_student(request):
     if request.method == 'POST':
         name = request.POST['name'].capitalize()
-        student =  Student.objects.filter(name=name)
-        if student:
+        try:
+            student =  Student.objects.get(name=name)
             student.delete()
             return redirect(reverse('index'))
-        else:
+        except:
             return render(request,'student_management/delete_student.html',{"message":"No record to delete"})
+   
     else:
         return render(request,'student_management/delete_student.html')
 
