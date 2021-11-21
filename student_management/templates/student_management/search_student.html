@@ -1,0 +1,15 @@
+{% extends 'student_management/layout.html' %}
+{% block body %}
+<h1>Enter the student details to search.</h1>
+<form action="{% url 'search' %}" method="post">
+    {% csrf_token %}
+      <div class="row mb-3">
+        <label for="name" class="col-sm-2 col-form-label">Name</label>
+        <div class="col-sm-10">
+          <input type="text" class="form-control" id="name" name='name'>
+        </div>
+      </div>
+     
+      <button type="submit" class="btn btn-primary">Search Student</button>
+    </form>
+{% endblock %}
