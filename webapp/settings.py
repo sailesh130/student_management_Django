@@ -11,7 +11,9 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 from pathlib import Path
-
+import os
+from dotenv import load_dotenv
+load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -73,15 +75,15 @@ AUTH_USER_MODEL = "student_management.User"
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
-
+print(os.environ.get("DATABASE_PASSWORD"))
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'student',
-        'USER':'postgres',
-        'PASSWORD':'9843',
-        'HOST':'localhost',
-        'PORT': 5432
+        'NAME': os.environ.get('database_name'),
+        'USER':os.environ.get('database_user'),
+        'PASSWORD':os.environ.get('database_password'),
+        'HOST':os.environ.get('database_host'),
+        'PORT': os.environ.get('database_port')
 
     }
 }
