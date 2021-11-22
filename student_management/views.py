@@ -55,6 +55,7 @@ def search_student(request):
         return render(request,'student_management/search_student.html')
 
 
+
 def update_student(request):
     if request.method == 'POST':
         name = request.POST['name'].capitalize()
@@ -82,6 +83,7 @@ def update_student(request):
 
         return render (request,'student_management/update_student.html')
 
+
 def delete_student(request):
     if request.method == 'POST':
         name = request.POST['name'].capitalize()
@@ -96,10 +98,12 @@ def delete_student(request):
         return render(request,'student_management/delete_student.html')
 
 
+
 def index(request):
     students = Student.objects.all()
 
     return render(request,'student_management/index.html',{'students':students})
+
 
 
 def login_view(request):
@@ -120,9 +124,11 @@ def login_view(request):
     else:
         return render(request, 'student_management/login.html') 
 
+
 def logout_view(request):
     logout(request)
     return redirect(reverse('index'))
+
 
 
 def register(request):
