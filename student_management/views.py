@@ -98,6 +98,7 @@ def delete_student(request):
 
 def index(request):
     students = Student.objects.all()
+
     return render(request,'student_management/index.html',{'students':students})
 
 
@@ -121,7 +122,7 @@ def login_view(request):
 
 def logout_view(request):
     logout(request)
-    return redirect(reverse('login'))
+    return redirect(reverse('index'))
 
 
 def register(request):

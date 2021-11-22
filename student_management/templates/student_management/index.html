@@ -1,6 +1,9 @@
 {% extends "student_management/layout.html" %}
 {% block body %}
 <h1>Welcome to Student Management System</h1>
+{%if user.is_authenticated %}
+<h3>You are login as {{user.username}}</h3>
+<a href="{% url 'logout' %}"><button type="button" class="btn btn-primary">Logout</button></a>
 <div class="btn-group d-flex justify-content-center" role="group" aria-label="Basic example">
     <a href="{% url 'index' %}"><button type="button" class="btn btn-primary">Home</button></a>
     <a href="{% url 'add' %}"><button type="button" class="btn btn-primary">Add student</button></a>
@@ -8,6 +11,10 @@
     <a href="{% url 'search' %}"><button type="button" class="btn btn-primary">Search student</button></a>
     <a href="{% url 'delete' %}"><button type="button" class="btn btn-primary">Delete student</button></a>
   </div>
+  {% else %}
+  <a href="{% url 'login' %}"><button type="button" class="btn btn-primary">Login</button></a>
+  <a href="{% url 'register' %}"><button type="button" class="btn btn-primary">Register</button></a>
+  {% endif %}
 {% if students %}
 <table class="table table-success table-striped table-hover my-4">
     <thead>
