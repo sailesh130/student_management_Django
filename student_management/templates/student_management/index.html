@@ -2,7 +2,7 @@
 {% block body %}
 <h1>Welcome to Student Management System</h1>
 {%if user.is_authenticated %}
-<h3>You are login as {{user.username}}</h3>
+<h3>You are login as {{user.username|upper}}</h3>
 <a href="{% url 'logout' %}"><button type="button" class="btn btn-primary">Logout</button></a>
 <div class="btn-group d-flex justify-content-center" role="group" aria-label="Basic example">
     <a href="{% url 'index' %}"><button type="button" class="btn btn-primary">Home</button></a>
@@ -27,6 +27,7 @@
         <th scope='col'>Address</th>
         <th scope="col">Supervisior</th>
         <th scope="col">Faculty</th>
+        <th scope="col">Subject</th>
       </tr>
     </thead>
     <tbody>
@@ -40,6 +41,15 @@
         <td>{{student.address}}</td>
         <td>{{student.supervisior.name}}</td>
         <td>{{student.faculty.name}}</td>
+        <td>
+          <table>
+            <tr>
+              {% for subject in student.subject.all %}
+                <td>{{subject.name}}&nbsp;</td>
+              {% endfor %}
+            </tr>
+          </table>
+        </td>
       </tr>
       {% endfor %}
     </tbody>

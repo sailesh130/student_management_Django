@@ -75,7 +75,7 @@ AUTH_USER_MODEL = "student_management.User"
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
-print(os.environ.get("DATABASE_PASSWORD"))
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
