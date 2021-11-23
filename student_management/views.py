@@ -1,50 +1,63 @@
-from django.shortcuts import render,redirect,HttpResponse
+from django.shortcuts import render,redirect
 from django.urls import reverse
 from .models import User,Student,Supervisior,Subject,Faculty
 from django.db import IntegrityError
 from django.contrib.auth import authenticate, login, logout
-
+from .forms import AddStudent, RegisterForm,UpdateStudent
 # Create your views here.
 def add_student(request):
     if request.method == 'POST':
-        name = request.POST['name'].capitalize()
-        age = request.POST['age']
-        grade= request.POST['grade']
-        address =request.POST['address'].capitalize()
-        roll_no = request.POST['roll']
-        supervisior = request.POST['supervisior'].capitalize()
-        sup_address = request.POST['supervisior_add'].capitalize()
-        faculty = request.POST['faculty'].capitalize()
-        subject = request.POST['subject'].split(',')
-        subject = [s.capitalize() for s in subject ]
-        try:
-            sup = Supervisior.objects.get(name=supervisior, address=sup_address)
-        except Supervisior.DoesNotExist:
-            sup = Supervisior(name=supervisior,address=address)
-            sup.save()
-        try:
-            fac = Faculty.objects.get(name=faculty)
-        except Faculty.DoesNotExist:
-            fac = Faculty(name=faculty)
-            fac.save()
-        student = Student.objects.create(name=name,age=age,grade=grade,address=address,roll_no=roll_no,supervisior=sup,
-        faculty=fac)
-        student.save()
-        for sub in subject:
-            try:
-                subj = Subject.objects.get(name=sub,faculty=fac)
-            except Subject.DoesNotExist:
-                subj = Subject(name=sub,faculty=fac)
-                subj.save()
-            student.subject.add(subj)
-
-        return redirect(reverse('index'))
+        form = AddStudent(request.POST)
+        if form.is_valid():
+            name = form.cleaned_data['name'].capitalize()
+            age = form.cleaned_data['age']
+            grade= form.cleaned_data['grade']
+            address =form.cleaned_data['address'].capitalize()
+            roll_no = form.cleaned_data['roll_no']
+            supervisior = form.cleaned_data['supervisior'].capitalize()
+            sup_address = form.cleaned_data['supervisior_add'].capitalize()
+            faculty = form.cleaned_data['faculty'].capitalize()
+            subject = form.cleaned_data['subject']
             
-        
+            subject = [s.capitalize() for s in subject ]
 
+            record,sup = Supervisior.objects.get_or_create(name=supervisior, address=sup_address)
+            if record:
+                supervisior = record
+            else:
+                supervisior = sup
+                sup.save()
+               
+            fac_record , fact =Faculty.objects.get_or_create(name=faculty)
+            if fac_record:
+                fac = fac_record
+            else:
+                fac= fact
+                fact.save()
+            print(sup)  
+            student = Student.objects.create(name=name,age=age,grade=grade,address=address,roll_no=roll_no,supervisior=supervisior,
+            faculty=fac)
+            student.save()
+            
+            for sub in subject:
+                sub_record,subject = Subject.objects.get_or_create(name=sub,faculty=fac)
+                if sub_record:
+                    subj = sub_record
+                else:
+                    subject.save()
+                    subj = subject
+                student.subject.add(subj)
+
+            return redirect(reverse('index'))
+        else:
+            return render(request,'student_management/add_student.html',{'form':form})
+
+
+            
     else:
+        form = AddStudent()
 
-        return render(request,'student_management/add_student.html')
+        return render(request,'student_management/add_student.html',{'form':form})
 
 def search_student(request):
     if request.method == 'POST':
@@ -58,18 +71,23 @@ def search_student(request):
 
 def update_student(request):
     if request.method == 'POST':
-        name = request.POST['name'].capitalize()
-        field = request.POST['field']
-        value = request.POST['value']
+        form = UpdateStudent(request.POST)
+        if form.is_valid():
+            name = form.cleaned_data['name'].capitalize()
+            field = form.cleaned_data['field']
+            value = form.cleaned_data['value']
         try:
             s = Student.objects.get(name=name)
         except:
-            return render(request,'student_management/update_student.html',{ 'message' :"No record to update"})
+            form = UpdateStudent()
+            return render(request,'student_management/update_student.html',{ 'message' :"No record to update",'form':form})
 
         if field == 'supervisior':
-            return render(request,'student_management/update_student.html',{ 'message' :"cannot update supervisior field"})
+            form = UpdateStudent()
+            return render(request,'student_management/update_student.html',{ 'message' :"cannot update supervisior field",'form':form})
         elif field =='faculty':
-            return render(request,'student_management/update_student.html',{ 'message' :"cannot update supervisior field"})
+            form = UpdateStudent()
+            return render(request,'student_management/update_student.html',{ 'message' :"cannot update supervisior field",'form':form})
 
         else:
             value = int(value)
@@ -80,8 +98,8 @@ def update_student(request):
             return redirect(reverse('index'))
         
     else:
-
-        return render (request,'student_management/update_student.html')
+        form = UpdateStudent()
+        return render (request,'student_management/update_student.html',{'form':form})
 
 
 def delete_student(request):
@@ -133,20 +151,27 @@ def logout_view(request):
 
 def register(request):
     if request.method == 'POST':
-        username = request.POST['username']
-        email = request.POST['email']
-        password = request.POST['password']
-        conformation = request.POST['conformation']
-        if password != conformation:
-            return render(request,'student_management/layout.html',{'message':'password must match'})
-        try:
-            user = User.objects.create_user(username, email, password)
-            user.save()
-        except IntegrityError:
+        form = RegisterForm(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['name'].capitalize()
+            email = form.cleaned_data['email']
+            password = form.cleaned_data['password']
+            conformation = form.cleaned_data['conformation']
+            
+            if password != conformation:
+                form = RegisterForm()
+                return render(request,'student_management/register.html',{'message':'password must match','form':form})
+        
+            try:
+                user = User.objects.create_user(username, email, password)
+                user.save()
+            except IntegrityError:
+                form = RegisterForm()
+                return render(request,"student_management/register.html",{'message':'username already taken','form':form})
+            login(request, user)
+            return redirect(reverse('index'))
 
-            return render(request,"student_management/register.html",{'message':'username already taken'})
-        login(request, user)
-        return redirect(reverse('index'))
     else:
-        return render(request,"student_management/register.html")
+        form = RegisterForm()
+        return render(request,"student_management/register.html",{'form':form})
 
