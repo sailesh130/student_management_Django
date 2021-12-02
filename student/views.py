@@ -3,7 +3,7 @@ from django.shortcuts import redirect, render
 from django.urls.base import reverse
 from django.views.generic import TemplateView,ListView,DetailView,UpdateView,DeleteView
 from django.views.generic.edit import CreateView
-from .forms import CustomUserCreateForm,StudentForm
+from .forms import CustomUserCreateForm,StudentForm,TeacherForm,FacultyForm,SubjectForm
 from django.urls import reverse_lazy
 from .models import Student,Supervisior,Subject,Faculty,CustomUser
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -86,14 +86,13 @@ class StudentCreateView(LoginRequiredMixin,CreateView):
 
 
 class TeacherCreateView(LoginRequiredMixin,CreateView):
-    model = Supervisior
-    fields = '__all__'
+    form_class = TeacherForm
+    
     template_name = 'create.html'
    
     login_url = 'login'
     
-
-
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['data'] = 'Teacher'
@@ -101,8 +100,7 @@ class TeacherCreateView(LoginRequiredMixin,CreateView):
 
     
 class SubjectCreateView(LoginRequiredMixin,CreateView):
-    model = Subject
-    fields = '__all__'
+    form_class = SubjectForm
     template_name = 'create.html'
    
     login_url = 'login'
@@ -114,8 +112,7 @@ class SubjectCreateView(LoginRequiredMixin,CreateView):
 
 
 class FacultyCreateView(LoginRequiredMixin,CreateView):
-    model = Faculty
-    fields = '__all__'
+    form_class = FacultyForm
     template_name = 'create.html'
     success_url = reverse_lazy('home')
     login_url = 'login'
