@@ -1,0 +1,26 @@
+{% extends 'layout.html' %}
+{% block body %}
+<h1>Student Details View</h1>
+<div class="container">
+    <div class="row">
+        <div class="col-4">
+            <img src="{{student.photo.url}}" class="img-fluid" alt="...">
+        </div>
+        <div class="col-8">
+            <p><b>Name: </b>{{student.fullname}}</p>
+            <p><b>Age: </b>{{student.age}}</p>
+            <p><b>Address: </b>{{student.address}}</p>
+            <p> <b>Faculty: </b>{{student.faculty.name}}</p>
+            <p><b>Grade: </b>{{student.grade}}</p>
+            <p><b>Subject:</b>{% for subject in student.faculty.subject.all%}{{subject.name}},{% endfor %}</p>
+        </div>
+    </div>
+
+</div>
+<div class="d-grid gap-2 col-2 mx-auto">
+    <a href="{% url 'student_update' student.pk%}"><button  class="btn btn-primary" type='button'>Update</button></a>
+    <a href="{% url 'student_delete' student.pk%}"><button  class="btn btn-primary" type='button'>Delete</button></a>
+    
+</div>
+
+{% endblock %}

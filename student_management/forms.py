@@ -1,40 +1,54 @@
+from typing import DefaultDict
 from django import forms
-from django.contrib.postgres.forms import SimpleArrayField
-from django.core.validators import MaxValueValidator, MinValueValidator
+from django.contrib.auth.forms import UserCreationForm,UserChangeForm
+from django.views.generic.list import ListView
+from .models import CustomUser, Student
+from django.forms import ModelForm, fields
+from django.core.exceptions import ValidationError
+import datetime
 
-class People(forms.Form):
-    name = forms.CharField(label="student name",min_length=3,max_length=100)
+
+class CustomUserCreateForm(UserCreationForm):
+    class Meta(UserCreationForm):
+        model = CustomUser
+        fields = UserCreationForm.Meta.fields + ('email',)
+
+    def clean_password2(self):
+        password1 = self.cleaned_data.get('password1')
+        password2 = self.cleaned_data.get('password2')
+
+        if password1 and password2 and password1 !=password2:
+            raise forms.ValidationError("Password does not match")
+        return password2
+
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data["password1"])
+        if commit:
+            user.save()
+        return user
+
+class StudentForm(ModelForm):
+    
+    field_order = ['fname','lname', 'address', 'DOB','email','grade','roll_no','photo','faculty']
     class Meta:
-        abstract = True
+        model = Student
+        exclude = ('age',)
+        widgets = {"DOB":forms.DateInput(attrs={'type': 'date'})}
 
+    def save(self, commit=True):
+        student = super().save(commit=False)
+        f_name = self.cleaned_data.get('fname')
+        l_name = self.cleaned_data.get('lname')
+        DOB = self.cleaned_data.get('DOB')
+        age = datetime.datetime.now().year - DOB.year 
+        student.age = age
+        student.fname = f_name.capitalize()
+        student.lname = l_name.capitalize()
+        if commit:
+            student.save()
+        return student
 
-class RegisterForm( People,forms.Form):
     
-    email = forms.EmailField(label="email",max_length=254)
-    password = password = forms.CharField(label="password",widget=forms.PasswordInput)
-    conformation = forms.CharField(label="conformation",widget=forms.PasswordInput)
-
-
-class AddStudent( People,forms.Form):
-    
-    age = forms.IntegerField(label="student age",validators=[MinValueValidator(1)])
-    grade = forms.IntegerField(label="grade",validators=[MinValueValidator(1),MaxValueValidator(12)])
-    address = forms.CharField(label="address",min_length=3,max_length=100,error_messages = {
-                 'exceed':'Number of character cannot exceed 100'})
-    roll_no = forms.IntegerField(label="roll_no",validators=[MinValueValidator(1)])
-    supervisior = forms.CharField(label='supervisior name',min_length=3,max_length=100)
-    supervisior_add = forms.CharField(label='supervisor address',min_length=3,max_length=100)
-    faculty = forms.CharField(label='faculty name',min_length=3,max_length=100)
-    subject =  SimpleArrayField(forms.CharField(label="subject",max_length=100,min_length=3))
-
-
-class UpdateStudent( People, forms.Form):
-    field = forms.CharField(label='field name',max_length=100,
-    error_messages = {
-                 'exceed':'Number of character cannot exceed 100'})
-    value = forms.CharField(label='field value',max_length=100,
-    error_messages = {
-                 'exceed':'Number of character cannot exceed 100'})
-
-
-
+       
