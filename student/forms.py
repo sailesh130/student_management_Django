@@ -37,15 +37,22 @@ class StudentForm(ModelForm):
         exclude = ('age',)
         widgets = {"DOB":forms.DateInput(attrs={'type': 'date'})}
 
-    def save(self, commit=True):
-        student = super().save(commit=False)
+
+    def name(self,student):
         f_name = self.cleaned_data.get('fname')
         l_name = self.cleaned_data.get('lname')
+        student.fname = f_name.capitalize()
+        student.lname = l_name.capitalize()
+
+    def dob(self,student):
         DOB = self.cleaned_data.get('DOB')
         age = datetime.datetime.now().year - DOB.year 
         student.age = age
-        student.fname = f_name.capitalize()
-        student.lname = l_name.capitalize()
+        
+    def save(self, commit=True):
+        student = super().save(commit=False)
+        self.name(student)
+        self.dob(student)
         if commit:
             student.save()
         return student
@@ -56,6 +63,8 @@ class TeacherForm(ModelForm):
     class Meta:
         model = Supervisior
         fields = '__all__'
+    
+   
 
     def clean(self):
         cleaned_data = super().clean()

@@ -1,6 +1,11 @@
 {% extends 'layout.html' %}
 {% block body %}
 <h1>Student List View</h1>
+<form class="d-flex" method="post">
+  {% csrf_token %}
+  <input class="form-control me-2" type="search" name="studentname" placeholder="Search" aria-label="Search">
+  <button class="btn btn-outline-success" type="submit">Search</button>
+</form>
 
 <table class="table table-striped table-hover">
     <thead>

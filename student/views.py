@@ -18,6 +18,7 @@ from django.http import HttpResponse
 from django.db.models.query_utils import Q
 from django.http import Http404
 from django.views import View
+
 # Create your views here.
 
 
@@ -49,6 +50,14 @@ class StudentListView(ListView):
     template_name = 'student_list.html'
 
 
+    def post(self, request):
+        query = request.POST.get('studentname')
+        print(query)
+        object_list = Student.objects.filter(fname__icontains=query)
+        return render(request,self.template_name,{'object_list' : object_list})
+
+
+
 
 class StudentDetailView(LoginRequiredMixin, PageNotFoundMixin,DetailView):
     model = Student
@@ -67,7 +76,7 @@ class StudentUpdateView(LoginRequiredMixin,PageNotFoundMixin,UpdateView):
     model = Student
     fields = '__all__'
     login_url = 'login'
-    template_name = 'student_update.html'
+    template_name = 'update.html'
     
 
 class StudentCreateView(LoginRequiredMixin,CreateView):
@@ -123,16 +132,61 @@ class FacultyCreateView(LoginRequiredMixin,CreateView):
         return context
 
 
-class SearchResultView(ListView):
-    template_name = 'create.html'
-
-    def get_queryset(self):
-        query = self.request.GET.get('name')
-        object_list = Student.objects.filter(name__icontains=query)
-        return object_list
 
 
+class TeacherListView(ListView):
+    model = Supervisior
+    template_name = 'teacher_list.html'
+    
+class FacultyListView(ListView):
+    model = Faculty
+    template_name = 'faculty_list.html'
 
+class SubjectListView(ListView):
+    model = Subject
+    template_name = 'subject_list.html'
+
+
+class TeacherUpdateView(LoginRequiredMixin,PageNotFoundMixin,UpdateView):
+    model = Supervisior
+    fields = '__all__'
+    login_url = 'login'
+    template_name = 'update.html'
+
+class FacultyUpdateView(LoginRequiredMixin,PageNotFoundMixin,UpdateView):
+    model = Faculty
+    fields = '__all__'
+    login_url = 'login'
+    template_name = 'update.html'
+
+class SubjectUpdateView(LoginRequiredMixin,PageNotFoundMixin,UpdateView):
+    model = Subject
+    fields = '__all__'
+    login_url = 'login'
+    template_name = 'update.html'
+
+
+class TeacherDeleteView(LoginRequiredMixin,PageNotFoundMixin,DeleteView):
+    model = Supervisior
+    template_name = 'teacher_delete.html'
+    success_url = reverse_lazy('home')
+    login_url = 'login'
+    
+
+class FacultyDeleteView(LoginRequiredMixin,PageNotFoundMixin,DeleteView):
+    model = Student
+    template_name = 'faculty_delete.html'
+    success_url = reverse_lazy('home')
+    login_url = 'login'
+
+class SubjectDeleteView(LoginRequiredMixin,PageNotFoundMixin,DeleteView):
+    model = Student
+    template_name = 'subject_delete.html'
+    success_url = reverse_lazy('home')
+    login_url = 'login'
+
+
+    
 def password_reset_request(request):
 	if request.method == "POST":
 		password_reset_form = PasswordResetForm(request.POST)
@@ -157,6 +211,6 @@ def password_reset_request(request):
 						send_mail(subject, email, 'admin@example.com' , [user.email], fail_silently=False)
 					except BadHeaderError:
 						return HttpResponse('Invalid header found.')
-					return redirect ("/password_reset/done/")
+					return redirect(reverse_lazy('password_reset_complete'))
 	password_reset_form = PasswordResetForm()
 	return render(request=request, template_name="registration/password_reset.html", context={"password_reset_form":password_reset_form})

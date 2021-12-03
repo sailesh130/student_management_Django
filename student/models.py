@@ -69,7 +69,7 @@ class Faculty(models.Model):
 
 class Student(Person, models.Model):
 
-     photo = models.ImageField(upload_to ='uploads/')
+     photo = models.ImageField(upload_to ='static/uploads/')
      email = models.EmailField(validators=[validators.EmailValidator,],unique=True)
      DOB = models.DateField()
      age = models.IntegerField(validators=[validators.MinValueValidator(1),validators.MinValueValidator(25)],null=True)

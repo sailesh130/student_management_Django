@@ -60,7 +60,7 @@
             <div class="navbar-collapse collapse w-50 order-3 dual-collapse2">
               <div class="dropdown ">
                 <button class="btn btn-warning rounded-circle dropdown-toggle text-white fs-3" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
-                  {{user.username|truncatechars:1|title}}
+                  {{user.username|slice:1|title}}
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
                   <li><a class="dropdown-item" href="{% url 'logout'%}">Logout</a></li>

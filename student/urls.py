@@ -1,6 +1,7 @@
 from django.urls import path,reverse_lazy
-from .views import (HomePageView,SignUpView, StudentCreateView,StudentDetailView,TeacherCreateView,FacultyCreateView,SubjectCreateView,
-password_reset_request,StudentUpdateView,StudentDeleteView,StudentListView)
+from .views import (HomePageView,SignUpView, StudentCreateView,StudentDetailView,TeacherCreateView,FacultyCreateView,SubjectCreateView, TeacherListView, TeacherUpdateView,
+password_reset_request,StudentUpdateView,StudentDeleteView,StudentListView,FacultyListView,SubjectListView,
+FacultyUpdateView,SubjectUpdateView,StudentDeleteView,SubjectDeleteView,FacultyDeleteView,TeacherDeleteView)
 from django.contrib.auth import views as auth_views
 from django.conf import settings
 from django.conf.urls.static import static
@@ -29,6 +30,16 @@ urlpatterns = [
     path('student_delete/<int:pk>',StudentDeleteView.as_view(),name='student_delete'),
     path('student_list',StudentListView.as_view(),name='student_list'),
     path('student_detail/<int:pk>',StudentDetailView.as_view(),name='student_detail'),
+    path('teacher_list',TeacherListView.as_view(),name='teacher_list'),
+    path('faculty_list',FacultyListView.as_view(),name='faculty_list'),
+    path('subject_list',SubjectListView.as_view(),name='subject_list'),
+    path('teacher_update/<int:pk>',TeacherUpdateView.as_view(),name='teacher_update'),
+    path('faculty_update/<int:pk>',FacultyUpdateView.as_view(),name='faculty_update'),
+    path('subject_update/<int:pk>',SubjectUpdateView.as_view(),name='subject_update'),
+    path('teacher_delete/<int:pk>',TeacherDeleteView.as_view(),name='teacher_delete'),
+    path('faculty_delete/<int:pk>',FacultyDeleteView.as_view(),name='faculty_delete'),
+    path('subject_delete/<int:pk>',SubjectDeleteView.as_view(),name='subject_delete'),
+
 ]
 
 if settings.DEBUG:
