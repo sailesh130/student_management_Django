@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.serializers import Serializer
 from .models import Faculty, Student, Subject, Supervisior
 from .serializers import StudentSeralizers,TeacherSeralizers,FacultySeralizers,SubjectSeralizers
-import datetime
+
 
 # Create your views here.
 
@@ -16,23 +16,8 @@ class StudentList(generics.ListCreateAPIView):
     filter_backends = [filters.SearchFilter]
     search_fields = ['fname','lname']
     ordering_fields = '__all__'
-    ordering = ['fname','lname']
+    ordering = ['fname']
 
-    def calculate_age(self,serializer):
-        date = serializer.validated_data['DOB']
-        today = datetime.datetime.now().year
-        student_date = date.year 
-        return  today - student_date
-
-
-
-    def create(self, request, *args, **kwargs):
-        serializer = StudentSeralizers(data = self.request.data)
-        serializer.is_valid(raise_exception=True)
-        age = self.calculate_age(serializer)
-        serializer.save(age=age)
-        return Response(status=status.HTTP_201_CREATED)
-        
         
 
 class StudentDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -44,20 +29,6 @@ class TeacherList(generics.ListCreateAPIView):
     queryset = Supervisior.objects.all()
     serializer_class = TeacherSeralizers
 
-    def create(self, request, *args, **kwargs):
-        serializer = TeacherSeralizers(data = self.request.data)
-        serializer.is_valid(raise_exception=True)
-        f_name = serializer.validated_data['fname']
-        l_name = serializer.validated_data['lname']
-        teacher_address = serializer.validated_data['address']
-        obj, created = Supervisior.objects.get_or_create(fname=f_name,lname=l_name,address=teacher_address)
-        if obj:
-            
-            return Response(status=status.HTTP_409_CONFLICT)
-
-        else:
-            serializer.save()
-            return Response(status=status.HTTP_201_CREATED)
 
 
 class TeacherDetail(generics.RetrieveUpdateDestroyAPIView):
