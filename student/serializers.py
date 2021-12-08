@@ -2,7 +2,6 @@ from rest_framework import serializers
 from .models import Student,Supervisior,Subject,Faculty
 import datetime
 
-
 class StudentSeralizers(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
@@ -22,62 +21,44 @@ class StudentSeralizers(serializers.ModelSerializer):
         student.save()
         return student
 
-
-
-        
+     
 class TeacherSeralizers(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         
         model = Supervisior
 
-    def create(self, validated_data):
-        obj,teacher = Supervisior.objects.get_or_create(**validated_data)
-        if obj:
-            teacher = Supervisior.objects.get(pk=obj.pk)
-            return teacher
-        else:
-           
-            return teacher
-            
+    def create(self,validated_data):
+        teacher,created = Supervisior.objects.get_or_create(**validated_data)
+        if not created:
+            raise serializers.ValidationError("Teacher already exists")
+
+        return teacher
+        
 
 class FacultySeralizers(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
-        
         model = Faculty
 
-        def create(self, validated_data):
-            name = validated_data['name']
-            teacher = validated_data['teacher']
-            subject = validated_data['subject']
+    def validate_name(self,name):
+        faculty = Faculty.objects.filter(name=name).exists()
+        if  faculty:
+            raise serializers.ValidationError("Faculty already exists")
 
-            obj, faculty = Faculty.objects.get_or_create(name = name)
-            if obj:
-                raise serializers.ValidationError("Faculty already exists")
+        return name
 
-            else:
-                faculty.teacher = teacher
-                faculty.subject = subject
-                faculty.save()
-                return faculty
-            
-
+        
 class SubjectSeralizers(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
-       
         model = Subject
 
-        def create(self, validated_data):
-            name = validated_data['name']
-            teacher = validated_data['teacher']
+    def validate_name(self,name):
+        subject = Subject.objects.filter(name=name).exists()
+        if  subject:
+            raise serializers.ValidationError("Subject already exists")
 
-            obj, subject = Subject.objects.get_or_create(name = name)
-            if obj:
-                raise serializers.ValidationError("Subject already exists")
+        return name
 
-            else:
-                subject.teacher = teacher
-                subject.save()
-                return subject
+        

@@ -29,6 +29,8 @@ class TeacherList(generics.ListCreateAPIView):
     queryset = Supervisior.objects.all()
     serializer_class = TeacherSeralizers
 
+    
+
 
 
 class TeacherDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -42,20 +44,7 @@ class FacultyList(generics.ListCreateAPIView):
     queryset = Faculty.objects.all()
     serializer_class = FacultySeralizers
 
-    def create(self, request, *args, **kwargs):
-        serializer = FacultySeralizers(data = self.request.data)
-        serializer.is_valid(raise_exception=True)
-        faculty_name = serializer.validated_data['name']
-        teacher = serializer.validated_data['teacher']
-        subject = serializer.validated_data['teacher']
-        obj, created = Faculty.objects.get_or_create(name=faculty_name)
-        if obj:
-            return Response(status=status.HTTP_409_CONFLICT)
-
-        else:
-            serializer.save(teacher=teacher,subject=subject)
-            return Response(status=status.HTTP_201_CREATED)
-            
+    
 
 
 class FacultyDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -68,22 +57,8 @@ class SubjectList(generics.ListCreateAPIView):
     serializer_class = SubjectSeralizers
 
 
-    def create(self, request, *args, **kwargs):
-        serializer = SubjectSeralizers(data = self.request.data)
-        serializer.is_valid(raise_exception=True)
-        subject_name = serializer.validated_data['name']
-        teacher = serializer.validated_data['teacher']
-        obj, created = Subject.objects.get_or_create(name=subject_name)
-
-        if obj:
-            return Response(status=status.HTTP_409_CONFLICT)
-
-        else:
-            serializer.save(teacher=teacher)
-            return Response(status=status.HTTP_201_CREATED)
+    
             
-
-
 class SubjectDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Subject.objects.all()
     serializer_class = SubjectSeralizers
