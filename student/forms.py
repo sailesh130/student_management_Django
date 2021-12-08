@@ -1,17 +1,19 @@
-from typing import DefaultDict
 from django import forms
 from django.contrib.auth.forms import UserCreationForm,UserChangeForm
-from django.views.generic.list import ListView
-from .models import CustomUser, Faculty, Student, Subject, Supervisior
-from django.forms import ModelForm, fields
-from django.core.exceptions import ValidationError
-import datetime
+from .models import CustomUser
+from django.contrib.auth.forms import ReadOnlyPasswordHashField
+
 
 
 class CustomUserCreateForm(UserCreationForm):
+
+    password1 = forms.CharField(label='Password', widget=forms.PasswordInput)
+    password2 = forms.CharField(
+        label='Password confirmation', widget=forms.PasswordInput)
+
     class Meta(UserCreationForm):
         model = CustomUser
-        fields = UserCreationForm.Meta.fields + ('email',)
+        fields = ['username','email']
 
     def clean_password2(self):
         password1 = self.cleaned_data.get('password1')
@@ -29,74 +31,14 @@ class CustomUserCreateForm(UserCreationForm):
             user.save()
         return user
 
-class StudentForm(ModelForm):
-    
-    field_order = ['fname','lname', 'address', 'DOB','email','grade','roll_no','photo','faculty']
+
+class UserChangeForm(forms.ModelForm):
+    password = ReadOnlyPasswordHashField()
+
     class Meta:
-        model = Student
-        exclude = ('age',)
-        widgets = {"DOB":forms.DateInput(attrs={'type': 'date'})}
+        model = CustomUser
+        fields = ('email', 'password', 'username',
+                  'is_active', 'is_admin')
 
-
-    def name(self,student):
-        f_name = self.cleaned_data.get('fname')
-        l_name = self.cleaned_data.get('lname')
-        student.fname = f_name.capitalize()
-        student.lname = l_name.capitalize()
-
-    def dob(self,student):
-        DOB = self.cleaned_data.get('DOB')
-        age = datetime.datetime.now().year - DOB.year 
-        student.age = age
-        
-    def save(self, commit=True):
-        student = super().save(commit=False)
-        self.name(student)
-        self.dob(student)
-        if commit:
-            student.save()
-        return student
-
-    
-       
-class TeacherForm(ModelForm):
-    class Meta:
-        model = Supervisior
-        fields = '__all__'
-    
-   
-
-    def clean(self):
-        cleaned_data = super().clean()
-        fname = cleaned_data.get('fname')
-        lname = cleaned_data.get('lname')
-        address =cleaned_data.get('address')
-
-        if Supervisior.objects.filter(fname=fname,lname=lname,address=address).exists():
-            raise forms.ValidationError('Data already exists')
-
-
-class FacultyForm(ModelForm):
-    class Meta:
-        model = Faculty
-        fields = '__all__'
-
-    def clean(self):
-        cleaned_data = super().clean()
-        name = cleaned_data.get('name')
-        
-        if Faculty.objects.filter(name=name).exists():
-            raise forms.ValidationError('Data already exists')
-
-
-class SubjectForm(ModelForm):
-    class Meta:
-        model = Subject
-        fields = '__all__'
-
-    def clean(self):
-        cleaned_data = super().clean()
-        name = cleaned_data.get('name')
-        
-        if Subject.objects.filter(name=name).exists():
-            raise forms.ValidationError('Data already exists')
+    def clean_password(self):
+        return self.initial["password"]
