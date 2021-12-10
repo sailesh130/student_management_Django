@@ -51,9 +51,10 @@ INSTALLED_APPS = [
     'rest_auth.registration',
     'student.apps.StudentConfig',
 ]
-SITE_ID = 1
+
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+SITE_ID = 1
 
 REST_FRAMEWORK = {
 'DEFAULT_PERMISSION_CLASSES': [
@@ -62,7 +63,9 @@ REST_FRAMEWORK = {
 'DEFAULT_AUTHENTICATION_CLASSES': [
 'rest_framework.authentication.SessionAuthentication',
 'rest_framework.authentication.TokenAuthentication', 
+#'rest_framework_simplejwt.authentication.JWTAuthentication'
 ],
+'TEST_REQUEST_DEFAULT_FORMAT': 'json'
 }
 
 
@@ -109,7 +112,15 @@ DATABASES = {
         'PASSWORD':os.environ.get('database_password'),
         'HOST':os.environ.get('database_host'),
         'PORT': os.environ.get('database_port')
-    }
+    },
+    'TEST': {
+        # testing database customization here
+        'NAME': os.environ.get('database_name'),
+        'USER':os.environ.get('database_user'),
+        'PASSWORD':os.environ.get('database_password'),
+        'HOST':os.environ.get('database_host'),
+        'PORT': os.environ.get('database_port')
+        },
 }
 
 
