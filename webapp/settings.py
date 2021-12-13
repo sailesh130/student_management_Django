@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 
 from pathlib import Path
 import os
+from datetime import datetime, timedelta
 
 from dotenv import load_dotenv
 
@@ -43,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     'django_filters',
     'rest_framework',
+    'rest_framework_simplejwt.token_blacklist',
     'rest_framework.authtoken',
     'allauth', 
     'allauth.account', 
@@ -61,11 +63,17 @@ REST_FRAMEWORK = {
 'rest_framework.permissions.IsAuthenticatedOrReadOnly',
 ],
 'DEFAULT_AUTHENTICATION_CLASSES': [
-'rest_framework.authentication.SessionAuthentication',
-'rest_framework.authentication.TokenAuthentication', 
-#'rest_framework_simplejwt.authentication.JWTAuthentication'
+#'rest_framework.authentication.SessionAuthentication',
+#'rest_framework.authentication.TokenAuthentication', 
+'rest_framework_simplejwt.authentication.JWTAuthentication'
 ],
 'TEST_REQUEST_DEFAULT_FORMAT': 'json'
+}
+
+SIMPLE_JWT = {
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=15),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': False
 }
 
 

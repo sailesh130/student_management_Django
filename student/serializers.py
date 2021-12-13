@@ -1,6 +1,9 @@
 from rest_framework import serializers
-from .models import Student,Supervisior,Subject,Faculty
+from .models import CustomUser, Student,Supervisior,Subject,Faculty
 import datetime
+from drf_braces.serializers.form_serializer import FormSerializer
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from .forms import CustomUserCreateForm
 
 class StudentSeralizers(serializers.ModelSerializer):
     class Meta:
@@ -61,4 +64,49 @@ class SubjectSeralizers(serializers.ModelSerializer):
 
         return name
 
-        
+
+class RegisterSerializer(FormSerializer):
+    class Meta:
+        form = CustomUserCreateForm
+
+
+    
+
+class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+
+    @classmethod
+    def get_token(cls, user):
+        token = super(MyTokenObtainPairSerializer, cls).get_token(user)
+
+        # Add custom claims
+        token['username'] = user.username
+        return token 
+
+
+class ChangePasswordSerializer(serializers.ModelSerializer):
+    password1 = serializers.CharField(write_only=True, required=True)
+    password2 = serializers.CharField(write_only=True, required=True)
+    old_password = serializers.CharField(write_only=True, required=True)
+
+    class Meta:
+        model = CustomUser
+        fields = ('old_password', 'password1', 'password2')
+
+    def validate(self, attrs):
+        if attrs['password1'] != attrs['password2']:
+            raise serializers.ValidationError({"password": "Password fields didn't match."})
+
+        return attrs
+
+    def validate_old_password(self, value):
+        user = self.context['request'].user
+        if not user.check_password(value):
+            raise serializers.ValidationError({"old_password": "Old password is not correct"})
+        return value
+
+    def update(self, instance, validated_data):
+
+        instance.set_password(validated_data['password1'])
+        instance.save()
+
+        return instance
