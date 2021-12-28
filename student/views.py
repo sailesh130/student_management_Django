@@ -1,216 +1,104 @@
-from django.contrib.auth.views import SuccessURLAllowedHostsMixin
-from django.shortcuts import redirect, render
-from django.urls.base import reverse
-from django.views.generic import TemplateView,ListView,DetailView,UpdateView,DeleteView
-from django.views.generic.edit import CreateView
-from .forms import CustomUserCreateForm,StudentForm,TeacherForm,FacultyForm,SubjectForm
-from django.urls import reverse_lazy
-from .models import Student,Supervisior,Subject,Faculty,CustomUser
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.core.exceptions import ValidationError
-from django.contrib.auth.forms import PasswordResetForm
-from django.core.mail import send_mail, BadHeaderError
-from django.utils.http import urlsafe_base64_encode
-from django.contrib.auth.tokens import default_token_generator
-from django.template.loader import render_to_string
-from django.utils.encoding import force_bytes
-from django.http import HttpResponse
-from django.db.models.query_utils import Q
-from django.http import Http404
-from django.views import View
+from django.shortcuts import render
+from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework import generics,permissions
+from rest_framework.response import Response
+from rest_framework import filters
+from rest_framework import status
+from rest_framework.serializers import Serializer
+from .models import CustomUser, Faculty, Student, Subject, Supervisior
+from .serializers import StudentSeralizers,TeacherSeralizers,FacultySeralizers,SubjectSeralizers,RegisterSerializer,MyTokenObtainPairSerializer,ChangePasswordSerializer
+
+
 
 # Create your views here.
 
+class StudentList(generics.ListCreateAPIView):
+    queryset = Student.objects.all()
+    serializer_class = StudentSeralizers
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['fname','lname']
+    ordering_fields = '__all__'
+    ordering = ['fname']
 
-class PageNotFoundMixin():
-    def get(self, request, *args, **kwargs):
-        try:
-            self.object = self.get_object()
-        except Http404:
-            # return custom template
-            return render(request, 'no_object.html', status=404)
-        context = self.get_context_data(object=self.object)
-        return self.render_to_response(context)
+        
 
-
-
-class HomePageView(TemplateView):
-    template_name = 'home.html'
+class StudentDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Student.objects.all()
+    serializer_class = StudentSeralizers
 
 
-class SignUpView(CreateView):
-    form_class = CustomUserCreateForm
-    success_url = reverse_lazy('login')
-    template_name = 'signup.html'
+class TeacherList(generics.ListCreateAPIView):
+    queryset = Supervisior.objects.all()
+    serializer_class = TeacherSeralizers
+
+    
 
 
 
-class StudentListView(ListView):
-    model = Student
-    template_name = 'student_list.html'
+class TeacherDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Supervisior.objects.all()
+    serializer_class = TeacherSeralizers
 
+    
+
+
+class FacultyList(generics.ListCreateAPIView):
+    queryset = Faculty.objects.all()
+    serializer_class = FacultySeralizers
+
+    
+
+
+class FacultyDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Faculty.objects.all()
+    serializer_class = FacultySeralizers
+
+
+class SubjectList(generics.ListCreateAPIView):
+    queryset = Subject.objects.all()
+    serializer_class = SubjectSeralizers
+
+
+    
+            
+class SubjectDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Subject.objects.all()
+    serializer_class = SubjectSeralizers
+
+    
+class LogoutView(APIView):
 
     def post(self, request):
-        query = request.POST.get('studentname')
-        print(query)
-        object_list = Student.objects.filter(fname__icontains=query)
-        return render(request,self.template_name,{'object_list' : object_list})
+        try:
+            print(request.data)
+            refresh_token = request.data["refresh_token"]
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            
+
+            return Response(status=status.HTTP_205_RESET_CONTENT)
+        except Exception as e:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-
-
-class StudentDetailView(LoginRequiredMixin, PageNotFoundMixin,DetailView):
-    model = Student
-    template_name = 'student_details.html'
-
+class RegisterView(generics.CreateAPIView):
+    permission_classes = (permissions.AllowAny,)
+    queryset = CustomUser.objects.all()
+    serializer_class = RegisterSerializer
     
 
-class StudentDeleteView(LoginRequiredMixin,PageNotFoundMixin,DeleteView):
-    model = Student
-    template_name = 'student_delete.html'
-    success_url = reverse_lazy('home')
-    login_url = 'login'
-    
 
-class StudentUpdateView(LoginRequiredMixin,PageNotFoundMixin,UpdateView):
-    model = Student
-    fields = '__all__'
-    login_url = 'login'
-    template_name = 'update.html'
-    
-
-class StudentCreateView(LoginRequiredMixin,CreateView):
-
-    form_class = StudentForm
-    template_name = 'create.html'
-  
-    login_url = 'login'
-
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['data'] = 'Student'
-        return context
+class MyObtainTokenPairView(TokenObtainPairView):
+    permission_classes = (permissions.AllowAny,)
+    serializer_class = MyTokenObtainPairSerializer
 
 
+class ChangePasswordView(generics.UpdateAPIView):
 
-class TeacherCreateView(LoginRequiredMixin,CreateView):
-    form_class = TeacherForm
-    
-    template_name = 'create.html'
-   
-    login_url = 'login'
-    
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['data'] = 'Teacher'
-        return context
-
-    
-class SubjectCreateView(LoginRequiredMixin,CreateView):
-    form_class = SubjectForm
-    template_name = 'create.html'
-   
-    login_url = 'login'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['data'] = 'Subject'
-        return context
-
-
-class FacultyCreateView(LoginRequiredMixin,CreateView):
-    form_class = FacultyForm
-    template_name = 'create.html'
-    success_url = reverse_lazy('home')
-    login_url = 'login'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['data'] = 'Faculty'
-        return context
-
-
-
-
-class TeacherListView(ListView):
-    model = Supervisior
-    template_name = 'teacher_list.html'
-    
-class FacultyListView(ListView):
-    model = Faculty
-    template_name = 'faculty_list.html'
-
-class SubjectListView(ListView):
-    model = Subject
-    template_name = 'subject_list.html'
-
-
-class TeacherUpdateView(LoginRequiredMixin,PageNotFoundMixin,UpdateView):
-    model = Supervisior
-    fields = '__all__'
-    login_url = 'login'
-    template_name = 'update.html'
-
-class FacultyUpdateView(LoginRequiredMixin,PageNotFoundMixin,UpdateView):
-    model = Faculty
-    fields = '__all__'
-    login_url = 'login'
-    template_name = 'update.html'
-
-class SubjectUpdateView(LoginRequiredMixin,PageNotFoundMixin,UpdateView):
-    model = Subject
-    fields = '__all__'
-    login_url = 'login'
-    template_name = 'update.html'
-
-
-class TeacherDeleteView(LoginRequiredMixin,PageNotFoundMixin,DeleteView):
-    model = Supervisior
-    template_name = 'teacher_delete.html'
-    success_url = reverse_lazy('home')
-    login_url = 'login'
-    
-
-class FacultyDeleteView(LoginRequiredMixin,PageNotFoundMixin,DeleteView):
-    model = Student
-    template_name = 'faculty_delete.html'
-    success_url = reverse_lazy('home')
-    login_url = 'login'
-
-class SubjectDeleteView(LoginRequiredMixin,PageNotFoundMixin,DeleteView):
-    model = Student
-    template_name = 'subject_delete.html'
-    success_url = reverse_lazy('home')
-    login_url = 'login'
-
-
-    
-def password_reset_request(request):
-	if request.method == "POST":
-		password_reset_form = PasswordResetForm(request.POST)
-		if password_reset_form.is_valid():
-			data = password_reset_form.cleaned_data['email']
-			associated_users = CustomUser.objects.filter(Q(email=data))
-			if associated_users.exists():
-				for user in associated_users:
-					subject = "Password Reset Requested"
-					email_template_name = "password_reset_email.txt"
-					c = {
-					"email":user.email,
-					'domain':'127.0.0.1:8000',
-					'site_name': 'Website',
-					"uid": urlsafe_base64_encode(force_bytes(user.pk)),
-					"user": user,
-					'token': default_token_generator.make_token(user),
-					'protocol': 'http',
-					}
-					email = render_to_string(email_template_name, c)
-					try:
-						send_mail(subject, email, 'admin@example.com' , [user.email], fail_silently=False)
-					except BadHeaderError:
-						return HttpResponse('Invalid header found.')
-					return redirect(reverse_lazy('password_reset_complete'))
-	password_reset_form = PasswordResetForm()
-	return render(request=request, template_name="registration/password_reset.html", context={"password_reset_form":password_reset_form})
+    queryset = CustomUser.objects.all()
+    permission_classes = (permissions.IsAuthenticated,)
+    serializer_class = ChangePasswordSerializer
