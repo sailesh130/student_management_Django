@@ -71,13 +71,14 @@ class SubjectDetail(generics.RetrieveUpdateDestroyAPIView):
 
     
 class LogoutView(APIView):
-   
 
     def post(self, request):
         try:
+            print(request.data)
             refresh_token = request.data["refresh_token"]
             token = RefreshToken(refresh_token)
             token.blacklist()
+            
 
             return Response(status=status.HTTP_205_RESET_CONTENT)
         except Exception as e:
@@ -85,9 +86,10 @@ class LogoutView(APIView):
 
 
 class RegisterView(generics.CreateAPIView):
-    queryset = CustomUser.objects.all()
     permission_classes = (permissions.AllowAny,)
+    queryset = CustomUser.objects.all()
     serializer_class = RegisterSerializer
+    
 
 
 class MyObtainTokenPairView(TokenObtainPairView):

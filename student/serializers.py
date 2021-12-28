@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import CustomUser, Student,Supervisior,Subject,Faculty
 import datetime
-from drf_braces.serializers.form_serializer import FormSerializer
+
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .forms import CustomUserCreateForm
 
@@ -65,12 +65,31 @@ class SubjectSeralizers(serializers.ModelSerializer):
         return name
 
 
-class RegisterSerializer(FormSerializer):
+class RegisterSerializer(serializers.ModelSerializer):
+
+    email = serializers.EmailField(
+            required=True)
+
+    password1 = serializers.CharField(write_only=True, required=True)
+    password2 = serializers.CharField(write_only=True, required=True)
     class Meta:
-        form = CustomUserCreateForm
+        model = CustomUser
+        fields = ('username','email','password1','password2')
 
+    def validate(self, attrs):
+        if attrs['password1'] != attrs['password2']:
+            raise serializers.ValidationError({"password": "Password fields didn't match."})
 
-    
+        return attrs
+
+    def create(self, validated_data):
+        user = CustomUser.objects.create(
+            username=validated_data['username'],
+            email=validated_data['email'])
+        user.set_password(validated_data['password1'])
+        user.save()
+        return user
+
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
